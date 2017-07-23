@@ -1,0 +1,2 @@
+# OpenHAB
+My OpenHAB setup.
