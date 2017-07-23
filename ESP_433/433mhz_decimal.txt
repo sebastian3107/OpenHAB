@@ -1,0 +1,14 @@
+A_an:  4474193
+A_aus: 4474196
+
+B_an:  4477265
+B_aus: 4477268
+
+C_an:  4478033
+C_aus: 4478036
+
+D_an:  4478225
+D_aus: 4478228
+
+# Schaltet C ein #
+mosquitto_pub -t home/MQTTto433/ -m 4478033

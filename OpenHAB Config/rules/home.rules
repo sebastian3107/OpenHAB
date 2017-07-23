@@ -1,0 +1,129 @@
+import org.openhab.core.library.types.*
+
+var HSBType hsbValue
+var boolean stopped_sunset
+var boolean stopped_sunrise
+var int fadeTime  = 1
+var int sleepTime =	5
+
+
+rule "Set RGB values"
+ when
+ Item fWIFI_RGB received update
+ then
+ hsbValue = fWIFI_RGB.state as HSBType
+
+ var int redValue = hsbValue.red.intValue
+ var int greenValue = hsbValue.green.intValue
+ var int blueValue = hsbValue.blue.intValue
+
+ var String RGBvalues = redValue.toString + ";" + greenValue.toString + ";" + blueValue.toString + ";" + fadeTime.toString
+ sendCommand(WIFI_RGB_command, RGBvalues)
+ //WIFI_RGB_command.sendCommand(RGBvalues)
+ //postUpdate(WIFI_RGB_command, RGBvalues)
+
+ logInfo("fWIFI_RGB", RGBvalues)
+end
+
+rule "Set stop flag"
+    when
+        Item WIFI_RGB_SunSim received command 1
+    then
+        stopped_sunset = true
+		stopped_sunrise = true
+    end
+
+rule "RGB Sunrise simulation" 
+when
+    Time cron "0 30 6 ? * MON-FRI" or // Monday-Friday, at 06:30
+	Time cron "0 30 7 ? * SAT-SUN" or // Saturday-Sunday, at 07:30 // doesnt work
+	Item WIFI_RGB_SunSim received command 2
+then
+    var hue			= new DecimalType(0)    // 0-360; 0=red, 120=green, 240=blue, 360=red(again)
+    var sat			= new PercentType(100)  // 0-100
+    var bright		= new PercentType(0)    // 0-100
+    stopped_sunrise = false
+	stopped_sunset 	= true
+	fadeTime 		= 5
+
+    while(bright <= 90 && !stopped_sunrise) // End up at 90% brightness
+	{
+        var lightValue = new HSBType(hue, sat, bright)
+		
+ 		sendCommand(fWIFI_RGB, lightValue)
+
+        hue		= new DecimalType(hue.intValue + 2) // Increment from 0 to 60 over half an hour, ends at yellow
+        sat 	= new PercentType(sat - 1)			// Decrement from 100 saturation to 70% over half an hour
+		bright	= new PercentType(bright + 3)
+
+        Thread::sleep(sleepTime*1000) // every step 60 secs (30min overall)
+    }
+	if (!stopped_sunrise) {
+		var lightValue = new HSBType(new DecimalType(50), new PercentType(50), new PercentType(100))
+		sendCommand(fWIFI_RGB, lightValue)
+		WIFI_RGB_presets.sendCommand(4) // Set to 100%
+		WIFI_RGB_SunSim.sendCommand(1)	// Switch simulation to OFF
+    }
+	else {
+		WIFI_RGB_presets.sendCommand(1) // Preset Off
+	}
+end
+
+rule "RGB Sunset simulation" 
+when
+	Item WIFI_RGB_SunSim received command 3
+then
+    var hue			= new DecimalType(60)  // 0-360; 0=red, 120=green, 240=blue, 360=red(again)
+    var sat			= new PercentType(70)  // 0-100
+    var bright		= new PercentType(30)  // 0-100
+    stopped_sunset 	= false
+	stopped_sunrise = true
+	fadeTime 		= 5
+
+    while(bright >= 0 && !stopped_sunset) // End up at 0% brightness
+	{
+        var lightValue = new HSBType(hue, sat, bright)
+		
+ 		sendCommand(fWIFI_RGB, lightValue)
+
+        hue		= new DecimalType(hue.intValue - 1) // Decrement from 60 to 0
+        sat		= new PercentType(sat + 1)			// Increment from 70% saturation to 100%
+		bright	= new PercentType(bright - 1)
+
+        Thread::sleep(sleepTime*1000) // every step 60 secs (30min overall)
+    }
+	if (!stopped_sunset) {
+	var lightValue = new HSBType(new DecimalType(50), new PercentType(50), new PercentType(0))
+	sendCommand(fWIFI_RGB, lightValue)
+	WIFI_RGB_SunSim.sendCommand(1)	// Switch simulation to OFF
+	}
+	WIFI_RGB_presets.sendCommand(1) // Preset Off
+end
+
+rule "RGB Presets"
+when
+    Item WIFI_RGB_presets received command
+then
+	fadeTime = 1
+	if (receivedCommand==1) {	// Aus
+		var oldValue = fWIFI_RGB.state as HSBType
+		var newLight = new HSBType(oldValue.getHue(), oldValue.getSaturation(), new PercentType(0))
+		sendCommand(fWIFI_RGB, newLight)
+    }
+	if (receivedCommand==2) {	// 25%
+		var oldValue = fWIFI_RGB.state as HSBType
+		var newLight = new HSBType(oldValue.getHue(), oldValue.getSaturation(), new PercentType(25))
+		sendCommand(fWIFI_RGB, newLight)
+    }
+    if (receivedCommand==3) {	// 50%
+		var oldValue = fWIFI_RGB.state as HSBType
+		var newLight = new HSBType(oldValue.getHue(), oldValue.getSaturation(), new PercentType(50))
+		sendCommand(fWIFI_RGB, newLight)
+    }
+	if (receivedCommand==4) {	// 100%
+		var oldValue = fWIFI_RGB.state as HSBType
+		var newLight = new HSBType(oldValue.getHue(), oldValue.getSaturation(), new PercentType(100))
+		sendCommand(fWIFI_RGB, newLight)
+    }
+	logInfo("Preset:", receivedCommand)
+end

@@ -1,0 +1,18 @@
+Group All
+/* active groups */
+Group:Switch:OR(ON, OFF)	Lights	"Alle Lichter [(%d)]"
+
+/* Lights */
+Switch Lampe1	"Stehlampe"		(Lights)	{mqtt=">[broker:home/MQTTto433/:command:ON:4474193], >[broker:home/MQTTto433/:command:OFF:4474196]"}
+Switch Lampe2	"Kommode"		(Lights)	{mqtt=">[broker:home/MQTTto433/:command:ON:4477265], >[broker:home/MQTTto433/:command:OFF:4477268]"}
+Switch Lampe3	"Schreibtisch"	(Lights)	{mqtt=">[broker:home/MQTTto433/:command:ON:4478033], >[broker:home/MQTTto433/:command:OFF:4478036]"}
+
+// WiFi RGB
+Group WIFI_RGB "WiFi RGB" (All)
+Color fWIFI_RGB "Farbwahl" <slider> (WIFI_RGB)
+String WIFI_RGB_command (WIFI_RGB) {mqtt=">[broker:home/RGB/Color/:command:*:default]"}
+Number WIFI_RGB_presets	"Presets"	 <sofa>	(WIFI_RGB)
+Number WIFI_RGB_SunSim	"Simulation" <sofa> (WIFI_RGB)
+// vim: syntax=Xtend syntax=openhab
+Switch TestItem "Test" {mqtt=">[broker:home/RGB/Color/:command:ON:100;100;100;1], >[broker:home/RGB/Color/:command:OFF:0;0;0;1]"}
+Switch TestItem2 "test2"

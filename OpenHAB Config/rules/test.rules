@@ -1,0 +1,6 @@
+rule "Test"
+    when
+        Item TestItem received update
+    then
+        logInfo("TEST RULE", "This is a test")
+end

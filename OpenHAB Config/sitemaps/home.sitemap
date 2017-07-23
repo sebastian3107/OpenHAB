@@ -1,0 +1,19 @@
+sitemap home label="Licht Steuerung"
+{
+	Frame label="Lampen" {
+		Switch item=Lights		mappings=[ON="An", OFF="Aus"]
+		Switch item=Lampe1 		mappings=[ON="An", OFF="Aus"]
+		Switch item=Lampe2 		mappings=[ON="An", OFF="Aus"]
+		Switch item=Lampe3 		mappings=[ON="An", OFF="Aus"]
+	}
+	Frame label="RGB Leiste" {
+	Colorpicker item=fWIFI_RGB icon="slider"
+	Switch item=WIFI_RGB_presets label="Presets" mappings=[1="Aus", 2="25%", 3="50%", 4="100%"]
+	Switch item=WIFI_RGB_SunSim mappings=[1="Aus", 2="Sunrise", 3="Sunset"]
+	Switch item=TestItem mappings=[ON="An", OFF="Aus"]
+	Switch item=TestItem2 mappings=[ON="An", OFF="Aus"]
+	}
+	
+}
+
+// vim: syntax=Xtend syntax=openhab
